@@ -1,0 +1,28 @@
+.header{
+    display: flex;
+    height: 5vh;
+    width: 100vw;
+    @media screen and (max-width: 600px) {
+     // display: none;
+    }
+    
+}
+.text{
+    text-transform: uppercase; 
+    background-image: linear-gradient(to right, white, red, black, black);
+    -webkit-background-clip: text; 
+    background-clip: text; 
+    font-size: 30px;
+    padding-left: 20px;
+    color: transparent;
+    background-size: 300%;
+    background-position: -100%;  
+    
+    animation: animatedText 5s infinite alternate-reverse;
+  }
+  
+  @keyframes animatedText{
+    to{
+      background-position: 100%; 
+    }
+  }
