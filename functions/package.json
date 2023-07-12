@@ -14,9 +14,13 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@google-cloud/storage": "^1.2.1",
+    "busboy": "^0.2.14",
     "cors": "^2.8.5",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^4.4.1",
+    "path": "^0.12.7",
+    "uuid-v4": "^0.1.0",
     "web-push": "^3.2.2"
   },
   "devDependencies": {

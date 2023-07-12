@@ -1,5 +1,5 @@
-const CACHE_STATIC_NAME = "static-v24",
-  CACHE_DYNAMIC_NAME = "dynamic-v13",
+const CACHE_STATIC_NAME = "static-v28",
+  CACHE_DYNAMIC_NAME = "dynamic-v17",
   self = this;
 
 ("use strict");
@@ -414,26 +414,25 @@ self.addEventListener("install", (e) => {
         readAllData("sync-posts").then((data) => {
           console.log(data, "test data..");
           for (let dt of data) {
+            let postData = new FormData();
+            postData.append("date", dt.date);
+            postData.append("handle", dt.handle);
+            postData.append("id", dt.id);
+            postData.append("likeCount", dt.likeCount);
+            postData.append("message", dt.message);
+            postData.append("name", dt.name);
+            postData.append(
+              "profileImage",
+              "https://xsgames.co/randomusers/avatar.php?g=male"
+            );
+            postData.append("replyCount", dt.replyCount);
+            postData.append("tweetCount", dt.tweetCount);
+            postData.append("file", dt.picture, dt.id + ".png");
             fetch(
               "https://us-central1-offline-app-732aa.cloudfunctions.net/storePostData",
               {
                 method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                },
-                body: JSON.stringify({
-                  date: dt.date,
-                  handle: dt.handle,
-                  id: dt.id,
-                  likeCount: dt.likeCount,
-                  message: dt.message,
-                  name: dt.name,
-                  profileImage:
-                    "https://xsgames.co/randomusers/avatar.php?g=male",
-                  replyCount: dt.replyCount,
-                  tweetCount: dt.tweetCount,
-                }),
+                body: postData,
               }
             )
               .then(function (res) {
@@ -441,6 +440,7 @@ self.addEventListener("install", (e) => {
                 if (res.ok) {
                   res.json().then(resData, () => {
                     deleteItemFromData("sync-posts", resData.id);
+                    console.log("item deleted");
                   });
                 }
               })
@@ -462,7 +462,21 @@ self.addEventListener("notificationclick", function (event) {
     notification.close();
   } else {
     console.log(action);
-    notification.close();
+    event.waitUntil(
+      clients.matchAll().then(function (clis) {
+        var client = clis.find(function (c) {
+          return c.visibilityState === "visible";
+        });
+
+        if (client !== undefined) {
+          client.navigate(notification.data.url);
+          client.focus();
+        } else {
+          clients.openWindow(notification.data.url);
+        }
+        notification.close();
+      })
+    );
   }
 });
 
@@ -473,17 +487,24 @@ self.addEventListener("notificationclose", function (event) {
 self.addEventListener("push", function (event) {
   console.log("Push Notification received", event);
 
-  var data = { title: "New!", content: "Something new happened!" };
+  var data = {
+    title: "New!",
+    content: "Something new happened!",
+    openUrl: "/",
+  };
 
   if (event.data) {
     data = JSON.parse(event.data.text());
   }
 
-  // var options = {
-  //   body: data.content,
-  //   icon: '/src/images/icons/app-icon-96x96.png',
-  //   badge: '/src/images/icons/app-icon-96x96.png'
-  // };
+  var options = {
+    body: data.content,
+    // icon: '/src/images/icons/app-icon-96x96.png',
+    // badge: '/src/images/icons/app-icon-96x96.png',
+    data: {
+      url: data.openUrl,
+    },
+  };
 
-  event.waitUntil(self.registration.showNotification(data.title));
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });

@@ -9,6 +9,7 @@ const Post = ({
   replyCount,
   retweetCount,
   likeCount,
+  image,
 }) => {
   return (
     <div className="tweet">
@@ -55,6 +56,16 @@ const Post = ({
             </svg>
           </div>
         </div>
+      </div>
+      <div
+        style={{
+          width: "300px",
+          height: "300px",
+          objectFit: "cover",
+          display: "block",
+        }}
+      >
+        <img alt="phot" src={image} />
       </div>
     </div>
   );

@@ -6,6 +6,9 @@ const Tweet = () => {
   // const [tweetText, setTweetText] = useState("");
   const inputRef = useRef("");
   const [image, setImage] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const picture = useRef(null);
 
   const handleTextChange = (event) => {
     setTweetText(event.target.value);
@@ -16,26 +19,39 @@ const Tweet = () => {
     setImage(URL.createObjectURL(file));
   };
 
+  function dataURItoBlob(dataURI) {
+    var byteString = atob(dataURI.split(",")[1]);
+    var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    var blob = new Blob([ab], { type: mimeString });
+    return blob;
+  }
+
   function sendData() {
+    const id = new Date().toISOString();
+    let postData = new FormData();
+    postData.append("date", "Dec 25");
+    postData.append("handle", "mvskiran");
+    postData.append("id", id);
+    postData.append("likeCount", 123);
+    postData.append("message", "This post is synced from service worker.");
+    postData.append("name", inputRef.current.value);
+    postData.append(
+      "profileImage",
+      "https://xsgames.co/randomusers/avatar.php?g=male"
+    );
+    postData.append("replyCount", 321);
+    postData.append("tweetCount", 12);
+    postData.append("file", picture.current, id + ".png");
     fetch(
       "https://us-central1-offline-app-732aa.cloudfunctions.net/storePostData",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          date: "Dec 25",
-          handle: "BackgroundSync",
-          id: "item3",
-          likeCount: 123,
-          message: "This post is synced from service worker.",
-          name: inputRef.current.value,
-          profileImage: "https://xsgames.co/randomusers/avatar.php?g=male",
-          replyCount: 343,
-          tweetCount: 23,
-        }),
+        body: postData,
       }
     ).then(function (res) {
       console.log("Sent data", res);
@@ -142,8 +158,6 @@ const Tweet = () => {
     }
   };
   const handleSubmit = () => {
-    console.log(inputRef.current.value);
-    console.log(idb);
     var dbPromise = idb.open("posts-store", 3, function (db) {
       if (!db.objectStoreNames.contains("posts")) {
         db.createObjectStore("posts", { keyPath: "id" });
@@ -152,7 +166,6 @@ const Tweet = () => {
         db.createObjectStore("sync-posts", { keyPath: "id" });
       }
     });
-
     function writeData(st, data) {
       return dbPromise.then(function (db) {
         console.log(db, "test");
@@ -177,13 +190,14 @@ const Tweet = () => {
           profileImage: "https://xsgames.co/randomusers/avatar.php?g=male",
           replyCount: 343,
           tweetCount: 23,
+          picture: picture.current,
         };
         writeData("sync-posts", post)
           .then(function () {
             return sw.sync.register("sync-new-post");
           })
           .then(function () {
-            alert("Your Post was saved for syncing!");
+            console.log("Your Post was saved for syncing!");
           })
           .catch(function (err) {
             console.log(err);
@@ -202,6 +216,55 @@ const Tweet = () => {
     //     }
     //   });
     // }
+  };
+  const handleShowImage = () => {
+    if (!("mediaDevices" in navigator)) {
+      navigator.mediaDevices = {};
+    }
+
+    if (!("getUserMedia" in navigator.mediaDevices)) {
+      navigator.mediaDevices.getUserMedia = function (constraints) {
+        var getUserMedia =
+          navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+        if (!getUserMedia) {
+          return Promise.reject(new Error("getUserMedia is not implemented!"));
+        }
+
+        return new Promise(function (resolve, reject) {
+          getUserMedia.call(navigator, constraints, resolve, reject);
+        });
+      };
+    }
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then(function (stream) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.style.display = "block";
+      })
+      .catch(function (err) {
+        alert("error");
+        console.log(err);
+        // imagePickerArea.style.display = 'block';
+      });
+  };
+  const handleCapture = (event) => {
+    canvasRef.current.style.display = "block";
+    videoRef.current.style.display = "none";
+    // captureButton.style.display = 'none';
+    var context = canvasRef.current.getContext("2d");
+    context.drawImage(
+      videoRef.current,
+      0,
+      0,
+      canvas.width,
+      videoRef.current.videoHeight /
+        (videoRef.current.videoWidth / canvas.width)
+    );
+    videoRef.current.srcObject.getVideoTracks().forEach(function (track) {
+      track.stop();
+    });
+    picture.current = dataURItoBlob(canvasRef.current.toDataURL());
   };
 
   return (
@@ -230,7 +293,7 @@ const Tweet = () => {
           <input
             type="file"
             accept="image/*"
-            onChange={handleImageUpload}
+            // onChange={handleImageUpload}
             className="upload-input"
           />
           <button className="submit-button" onClick={handleSubmit}>
@@ -241,6 +304,16 @@ const Tweet = () => {
           </button>
         </div>
       </div>
+      <video ref={videoRef} id="player" autoPlay playsInline muted></video>
+      <canvas ref={canvasRef} id="canvas" width="320px" height="240px"></canvas>
+      <button
+        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+        id="capture-btn"
+        onClick={handleShowImage}
+      >
+        Show Player
+      </button>
+      <button onClick={handleCapture}>Capture</button>
     </div>
   );
 };
