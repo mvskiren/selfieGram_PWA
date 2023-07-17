@@ -86,10 +86,37 @@
     display: none;
   }
   
-  .submit-button {
-    background-color: #1da1f2;
+  .post-button {
+    background-color: #33a0e4;
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 8px 32px;
+    cursor: pointer;
+    border-style: none;
+    &:hover{
+      background-color: #1184cc;
+    }
+  }
+  .subscribe-button {
+    background-color: hsl(36, 76%, 64%);
     color: #ffffff;
     border: none;
     border-radius: 20px;
-    padding: 8px 16px;
+    padding: 8px 16px;   
+    cursor: pointer;
+    margin-bottom: 10px;
+    display: block;
+    margin-left: auto;
   }
+  @media only screen and (min-width: 320px) and (max-width: 1000px)
+{
+  .OptionsWrapper{
+    flex-direction: column;
+  }
+  .header {
+    align-self: flex-start;
+  }
+  .footer{
+    align-self: flex-end;
+  }
+}

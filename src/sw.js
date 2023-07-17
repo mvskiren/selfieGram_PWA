@@ -1,5 +1,5 @@
-const CACHE_STATIC_NAME = "static-v28",
-  CACHE_DYNAMIC_NAME = "dynamic-v17",
+const CACHE_STATIC_NAME = "static-v34",
+  CACHE_DYNAMIC_NAME = "dynamic-v22",
   self = this;
 
 ("use strict");
@@ -342,6 +342,7 @@ function deleteItemFromData(st, id) {
 }
 
 self.addEventListener("install", (e) => {
+  // self.skipWaiting();
   e.waitUntil(
     caches
       .open(CACHE_STATIC_NAME)
@@ -360,17 +361,18 @@ self.addEventListener("install", (e) => {
   );
 }),
   self.addEventListener("activate", function (e) {
-    console.log("Activated", e),
-      e.waitUntil(
-        caches.keys().then((e) =>
-          Promise.all(
-            e.map((e) => {
-              if (CACHE_STATIC_NAME !== e && CACHE_DYNAMIC_NAME !== e)
-                return caches.delete(e);
-            })
-          )
+    console.log("Activated", e);
+    // self.clients.claim();
+    e.waitUntil(
+      caches.keys().then((e) =>
+        Promise.all(
+          e.map((e) => {
+            if (CACHE_STATIC_NAME !== e && CACHE_DYNAMIC_NAME !== e)
+              return caches.delete(e);
+          })
         )
-      );
+      )
+    );
   }),
   self.addEventListener("fetch", (e) => {
     var url =

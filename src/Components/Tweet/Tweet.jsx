@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
 import "./Tweet.scss";
 import idb from "../../../src/idb.js";
-
+import Modal from "../../Utilities/Modal/Modal.jsx";
+import CameraIcon from "../../Assets/Images/camera.png";
 const Tweet = () => {
   // const [tweetText, setTweetText] = useState("");
   const inputRef = useRef("");
@@ -9,6 +10,8 @@ const Tweet = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const picture = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showImage, setShowImage] = useState(false);
 
   const handleTextChange = (event) => {
     setTweetText(event.target.value);
@@ -180,8 +183,9 @@ const Tweet = () => {
 
     if ("serviceWorker" in navigator && "SyncManager" in window) {
       navigator.serviceWorker.ready.then(function (sw) {
+        let timeStamp = new Date().toJSON().slice(0, 10).replace(/-/g, "/");
         var post = {
-          date: "Dec 25",
+          date: timeStamp,
           handle: "BackgroundSync",
           id: `${inputRef.current.value}`,
           likeCount: 123,
@@ -198,6 +202,7 @@ const Tweet = () => {
           })
           .then(function () {
             console.log("Your Post was saved for syncing!");
+            setShowImage(false);
           })
           .catch(function (err) {
             console.log(err);
@@ -237,10 +242,16 @@ const Tweet = () => {
       };
     }
     navigator.mediaDevices
-      .getUserMedia({ video: true })
+      .getUserMedia({
+        video: {
+          facingMode: "user",
+        },
+        audio: false,
+      })
       .then(function (stream) {
         videoRef.current.srcObject = stream;
-        videoRef.current.style.display = "block";
+        // videoRef.current.style.display = "block";
+        videoRef.current.play();
       })
       .catch(function (err) {
         alert("error");
@@ -249,6 +260,8 @@ const Tweet = () => {
       });
   };
   const handleCapture = (event) => {
+    setIsOpen(false);
+    setShowImage(true);
     canvasRef.current.style.display = "block";
     videoRef.current.style.display = "none";
     // captureButton.style.display = 'none';
@@ -268,53 +281,108 @@ const Tweet = () => {
   };
 
   return (
-    <div className="tweet-container">
-      {/* <img
+    <>
+      <button className="subscribe-button" onClick={handleShowNotification}>
+        Subscribe Notifications
+      </button>
+      <div className="tweet-container">
+        {/* <img
         className="tweet-author-thumbnail"
         src="https://xsgames.co/randomusers/avatar.php?g=female"
       /> */}
-      <div className="body">
-        <textarea
-          className="tweet-textarea"
-          placeholder="What's happening?"
-          ref={inputRef}
-          // onChange={handleTextChange}
-        />
-        {image && <img src={image} alt="Uploaded" className="uploaded-image" />}
-      </div>
-      <div className="OptionsWrapper">
-        <div className="header">
-          <span className="icon icon-picture"></span>
+
+        <div className="body">
+          <textarea
+            className="tweet-textarea"
+            placeholder="What's happenings?"
+            ref={inputRef}
+            // onChange={handleTextChange}
+          />
+          {image && (
+            <img src={image} alt="Uploaded" className="uploaded-image" />
+          )}
+        </div>
+        <div className="OptionsWrapper">
+          <div className="header">
+            {/* <span className="icon icon-picture"></span>
           <span className="icon icon-gif"></span>
           <span className="icon icon-poll"></span>
-          <span className="icon icon-emoji"></span>
+          <span className="icon icon-emoji"></span> */}
+            <div
+              style={{ width: "40px", height: "40px" }}
+              onClick={() => setIsOpen(true)}
+            >
+              <img style={{ width: "100%", height: "100%" }} src={CameraIcon} />
+            </div>
+          </div>
+          <div className="footer">
+            <input
+              type="file"
+              accept="image/*"
+              // onChange={handleImageUpload}
+              className="upload-input"
+            />
+            <button className="post-button" onClick={handleSubmit}>
+              Post
+            </button>
+          </div>
         </div>
-        <div className="footer">
-          <input
-            type="file"
-            accept="image/*"
-            // onChange={handleImageUpload}
-            className="upload-input"
-          />
-          <button className="submit-button" onClick={handleSubmit}>
-            upload
+        {/* <div onClick={() => setIsOpen(true)}>Open Camera</div> */}
+
+        <canvas
+          ref={canvasRef}
+          id="canvas"
+          width="320px"
+          height="240px"
+          style={{ borderRadius: "5px" }}
+        ></canvas>
+
+        <div>
+          <Modal open={isOpen} onClose={() => setIsOpen(false)}>
+            <>
+              <div>
+                <video
+                  ref={videoRef}
+                  id="player"
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{ backgroundColor: "lightblue" }}
+                ></video>
+              </div>
+              <button
+                className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                id="capture-btn"
+                onClick={handleShowImage}
+              >
+                Start Camera
+              </button>
+              <button onClick={handleCapture}>Capture</button>
+            </>
+          </Modal>
+          {/* <div>
+          <div>
+            <video
+              ref={videoRef}
+              id="player"
+              autoPlay
+              playsInline
+              muted
+              style={{ backgroundColor: "white" }}
+            ></video>
+          </div>
+          <button
+            className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+            id="capture-btn"
+            onClick={handleShowImage}
+          >
+            Show Player
           </button>
-          <button className="submit-button" onClick={handleShowNotification}>
-            Request Permission
-          </button>
+          <button onClick={handleCapture}>Capture</button>
+        </div> */}
         </div>
       </div>
-      <video ref={videoRef} id="player" autoPlay playsInline muted></video>
-      <canvas ref={canvasRef} id="canvas" width="320px" height="240px"></canvas>
-      <button
-        className="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-        id="capture-btn"
-        onClick={handleShowImage}
-      >
-        Show Player
-      </button>
-      <button onClick={handleCapture}>Capture</button>
-    </div>
+    </>
   );
 };
 

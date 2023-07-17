@@ -15,6 +15,17 @@ function Home() {
 
   const [networkData, setNetworkData] = useState(false);
 
+  function compareDates(a, b) {
+    const dateA = new Date(
+      a.date.replace(/(\d{4})\/(\d{2})\/(\d{2})/, "$2/$3/$1")
+    );
+    const dateB = new Date(
+      b.date.replace(/(\d{4})\/(\d{2})\/(\d{2})/, "$2/$3/$1")
+    );
+
+    return dateB - dateA; // Sort in descending order
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -24,11 +35,13 @@ function Home() {
         );
         let data = await resp.json();
         let tempData = [];
+        let tempDataSorted = [];
         for (let key in data) {
           tempData.push(data[key]);
         }
+        tempDataSorted = tempData.sort(compareDates);
         setNetworkData(true);
-        setPostData(tempData);
+        setPostData(tempDataSorted);
         setLoading(false);
         console.log("from network..");
       } catch (err) {

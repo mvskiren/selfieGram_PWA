@@ -8,18 +8,21 @@ body {
   flex-direction: column;
   row-gap: 12px;
   width: 100%;
+  padding-bottom: 20px;
 }
 
 .tweet {
   --spacing: 12px;
-
   background-color: #fff;
   border: 1px solid #cfd9de;
   border-radius: 16px;
   column-gap: var(--spacing);
   display: flex;
   font-size: 15px;
+  flex-direction: column;
   padding: var(--spacing);
+  justify-content: center;
+  gap: 20px;
 }
 
 .tweet-top-row {
@@ -65,8 +68,16 @@ body {
 
 .tweet-icon {
   --icon-size: 16px;
-
+  cursor: pointer;
   fill: currentColor;
   height: var(--icon-size);
   width: var(--icon-size);
+}
+
+@media only screen and (min-width: 320px) and (max-width: 1000px)
+{
+.tweet{
+width: 95vw;
+justify-content: center;
+}
 }

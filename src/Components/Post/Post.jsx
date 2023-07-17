@@ -59,13 +59,12 @@ const Post = ({
       </div>
       <div
         style={{
-          width: "300px",
+          width: "90%",
           height: "300px",
           objectFit: "cover",
-          display: "block",
         }}
       >
-        <img alt="phot" src={image} />
+        <img style={{ borderRadius: "5px" }} alt="phot" src={image} />
       </div>
     </div>
   );
